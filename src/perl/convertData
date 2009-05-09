@@ -1,0 +1,24 @@
+#! /usr/bin/perl -w
+
+# $Id: convertData,v 1.4 2008-07-27 11:10:24 mschwarz Exp $
+#
+# This script will convert a filepro map and datafile
+# to a MySQL table create and insert script.
+#
+
+use Data::Dumper;
+use DBI;
+
+require "./fileproData.pl";
+
+$FP = openFileProFile($ARGV[0]);
+
+print "File: ".$FP->{fpdir}."\n\n";
+
+print "Column count: $FP->{columncount}\n\n";
+
+print Dumper($FP);
+
+## Okay. We've got the data. Now let's do something with it.
+
+$db = 
