@@ -11,7 +11,7 @@ use DBI;
 
 require "./fileproData.pl";
 
-$FP = openFileProFile($ARGV[0]);
+$FP = FilePro::Data::openFileProFile($ARGV[0]);
 
 print "File: ".$FP->{fpdir}."\n\n";
 

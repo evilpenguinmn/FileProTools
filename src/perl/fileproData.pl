@@ -8,6 +8,9 @@
 #
 
 use warnings;
+use strict;
+
+package FilePro::Data;
 
 sub openFileProFile {
 	my ($fpdir) = @_;
