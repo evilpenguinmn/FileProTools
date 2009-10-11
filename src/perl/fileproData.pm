@@ -7,12 +7,16 @@
 # build complex data structures.
 #
 
-use warnings;
-use strict;
-
 package FilePro::Data;
 
-sub openFileProFile {
+use warnings;
+use strict;
+use Exporter;
+
+@ISA = ('Exporter');
+@EXPORT_OK = ('openFPFile', 'getColumnDefs', 'unpackScreen');
+
+sub openFPFile {
 	my ($fpdir) = @_;
 	my (%FPDATA);
 	my ($mapheader, $m, $fpkeysz, $fpcolcnt);
