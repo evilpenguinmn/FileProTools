@@ -6,11 +6,13 @@
 # to a MySQL table create and insert script.
 #
 
-use Data::Dumper;
+use XML::Simple;
 use DBI;
 use FilePro::Data;
 
-my $fph = FilePro::Data->new("./fpexpr");
+my $fph = FilePro::Data->new($ARGV[0]);
+
+print XML::Simple::XMLout($fph);
 
 ## Okay. We've got the data. Now let's do something with it.
 

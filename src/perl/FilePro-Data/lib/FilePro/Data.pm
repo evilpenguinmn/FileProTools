@@ -31,13 +31,48 @@ our $VERSION = '0.01';
 # Preloaded methods go here.
 
 sub new {
-	my $pkg = shift;
-	my $self = { fpdatapath => shift; }
+	my ($pkg, $dpath) = @_; 
+	my $self = { fpdatapath => $dpath };
 	
 	die "Folder $self->{fpdatapath} does not exist" unless ( -d $self->{fpdatapath} );
+	die "Cannot read $self->{fpdatapath} map file" unless ( -r $self->{fpdatapath}."/map" );
+	die "Cannot read $self->{fpdatapath} key file" unless ( -r $self->{fpdatapath}."/key" );
+
+	$self->{map} = fp_populate_map($self->{fpdatapath}."/map");
+
+	my $preclen = ($self->{map}->{keyreclen})+0;
+	$self->{numkeyrecs} = (-s $self->{fpdatapath}."/map") / $preclen;
 
 	bless($self, $pkg);
 	return $self;
+}
+
+sub fp_populate_map($) {
+	my ($path) = @_;
+
+	my %map = {};
+
+	open MAPFILE, "<$path";
+
+	# First we read the header line of the file
+	my $line = <MAPFILE>;
+
+	(undef, $map{keyreclen}, $map{datareclen}, $map{pwchksum}, $map{passwd}) = split(/:/, $line);
+
+	my @cols = ();
+
+	while (<MAPFILE>) {
+		my %coldesc = {};
+		my $clen;
+
+		($coldesc{cname}, $clen, $coldesc{ctype}) = split(/:/);
+		$coldesc{clen} = $clen+0;
+		push(@cols, \%coldesc);
+	}
+
+	$map{cols} = \@cols;
+
+	return \%map;
 }
 
 
