@@ -8,10 +8,10 @@
 
 use Data::Dumper;
 use DBI;
+use FilePro::Data (qw openFPFile);
 
-require "./fileproData.pl";
 
-$FP = FilePro::Data::openFileProFile($ARGV[0]);
+$FP = openFPFile($ARGV[0]);
 
 print "File: ".$FP->{fpdir}."\n\n";
 
