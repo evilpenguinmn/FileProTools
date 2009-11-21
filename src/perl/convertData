@@ -8,16 +8,9 @@
 
 use Data::Dumper;
 use DBI;
-use FilePro::Data (qw openFPFile);
+use FilePro::Data;
 
-
-$FP = openFPFile($ARGV[0]);
-
-print "File: ".$FP->{fpdir}."\n\n";
-
-print "Column count: $FP->{columncount}\n\n";
-
-print Dumper($FP);
+my $fph = FilePro::Data->new("./fpexpr");
 
 ## Okay. We've got the data. Now let's do something with it.
 

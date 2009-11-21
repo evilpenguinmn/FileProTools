@@ -30,21 +30,6 @@ our $VERSION = '0.01';
 
 # Preloaded methods go here.
 
-=pod
-
-$fpobjref = FilePro::Data->new($filepro_data_dir_path);
-
-This constructor will instantiate a FilePro::Data object for the
-data table stored in the $filepro_data_dir_path. The constructor
-fails if any stage of the constuction fails.
-
-The directory must exist, it must contain a "map" file, it must contain a "key" file.
-
-We intend to support indexes, reports, and screens, but for now these two will
-let you extract data from the tables.
-
-=cut
-
 sub new {
 	my $pkg = shift;
 	my $self = { fpdatapath => shift; }
@@ -71,6 +56,16 @@ FilePro::Data - Perl extension for reading data from FilePro "files."
 
   my $fph = FilePro::Data->new("/appl/filepro/fpfile");
 
+  $fpobjref = FilePro::Data->new($filepro_data_dir_path);
+
+This constructor will instantiate a FilePro::Data object for the
+data table stored in the $filepro_data_dir_path. The constructor
+fails if any stage of the constuction fails.
+
+The directory must exist, it must contain a "map" file, it must contain a "key" file.
+
+We intend to support indexes, reports, and screens, but for now these two will
+let you extract data from the tables.
 
 =head1 DESCRIPTION
 
