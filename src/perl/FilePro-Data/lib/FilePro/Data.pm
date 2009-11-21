@@ -30,30 +30,78 @@ our $VERSION = '0.01';
 
 # Preloaded methods go here.
 
+=pod
+
+$fpobjref = FilePro::Data->new($filepro_data_dir_path);
+
+This constructor will instantiate a FilePro::Data object for the
+data table stored in the $filepro_data_dir_path. The constructor
+fails if any stage of the constuction fails.
+
+The directory must exist, it must contain a "map" file, it must contain a "key" file.
+
+We intend to support indexes, reports, and screens, but for now these two will
+let you extract data from the tables.
+
+=cut
+
+sub new {
+	my $pkg = shift;
+	my $self = { fpdatapath => shift; }
+	
+	die "Folder $self->{fpdatapath} does not exist" unless ( -d $self->{fpdatapath} );
+
+	bless($self, $pkg);
+	return $self;
+}
+
+
+
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
+# Below is POD Documentation
 
 =head1 NAME
 
-FilePro::Data - Perl extension for blah blah blah
+FilePro::Data - Perl extension for reading data from FilePro "files."
 
 =head1 SYNOPSIS
 
   use FilePro::Data;
-  blah blah blah
+
+  my $fph = FilePro::Data->new("/appl/filepro/fpfile");
+
 
 =head1 DESCRIPTION
 
-Stub documentation for FilePro::Data, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
+FilePro::Data is an object-oriented perl interface to read FilePro data files.
+A FilePro "file" is a directory containing a series of files that define the
+structure and contents of the data, and possibly additional files that 
+represent indexes into the data, reports, and edit screens.
 
-Blah blah blah.
+FilePro is a fairly "old school" tool, resembling classic "3270" batch style
+"glass teletype" applications. It does a nice job of this, but there are fewer
+and fewer people familiar with this kind of environment every year. The 
+purpose of the TechnoDane FilePro libraries is facilitate moving data out of 
+this system, perhaps to a more modern environment.
+
+The authors of this library have developed a practice around converting 
+FilePro applications into "LAMP" (Linux, Apache, MySQL, PHP) applications. In
+so doing they developed these perl libraries and have contributed them to the
+open source community.
+
+You can contact the authors (or their corporations; TechnoDane Software & 
+Systems, LLC or AnderSand Inc.)
+
+Be aware that in the present version, not only is this interface read-only,
+but it ignores the FilePro locking mechanism. This library should only be
+used against a static (not actively used by FilePro) copy of the data
+files.
 
 =head2 EXPORT
 
-None by default.
+None by default. We suggest that you use the "new" method as described
+above and access methods through that.
 
 
 
@@ -70,7 +118,7 @@ If you have a web site set up for your module, mention it here.
 
 =head1 AUTHOR
 
-Michael Schwarz, E<lt>mschwarz@E<gt>
+Michael Schwarz, E<lt>mschwarz@technodane.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
