@@ -27,6 +27,8 @@ our @EXPORT = qw(
 
 our $VERSION = '0.01';
 
+our $iternum = 0;
+
 
 # Preloaded methods go here.
 
@@ -40,8 +42,11 @@ sub new {
 
 	$self->{map} = fp_populate_map($self->{fpdatapath}."/map");
 
-	my $preclen = ($self->{map}->{keyreclen})+0;
-	$self->{numkeyrecs} = (-s $self->{fpdatapath}."/map") / $preclen;
+	$self->{numkeyrecs} = (-s $self->{fpdatapath}."/key") / ($self->{map}->{keyreclen}+20);
+
+	open my $keyfile, "<".$self->{fpdatapath}."/key" or die "Cannot open key file";
+	binmode($keyfile);
+	$self->{keyfile} = $keyfile;
 
 	bless($self, $pkg);
 	return $self;
@@ -50,31 +55,84 @@ sub new {
 sub fp_populate_map($) {
 	my ($path) = @_;
 
-	my %map = {};
+	my $map = {};
 
 	open MAPFILE, "<$path";
 
 	# First we read the header line of the file
 	my $line = <MAPFILE>;
 
-	(undef, $map{keyreclen}, $map{datareclen}, $map{pwchksum}, $map{passwd}) = split(/:/, $line);
+	(undef, $map->{keyreclen}, $map->{datareclen}, $map->{pwchksum}, $map->{passwd}) = split(/:/, $line);
 
 	my @cols = ();
 
 	while (<MAPFILE>) {
-		my %coldesc = {};
+		my $coldesc = {};
 		my $clen;
 
-		($coldesc{cname}, $clen, $coldesc{ctype}) = split(/:/);
-		$coldesc{clen} = $clen+0;
-		push(@cols, \%coldesc);
+		($coldesc->{cname}, $clen, $coldesc->{ctype}) = split(/:/);
+		$coldesc->{clen} = $clen+0;
+		push(@cols, $coldesc);
 	}
 
-	$map{cols} = \@cols;
+	$map->{cols} = \@cols;
 
-	return \%map;
+	return $map;
 }
 
+sub getRowRaw {
+	my ($self, $rownum) = @_;
+	my $rec;
+
+	seek $self->{keyfile}, $rownum * ($self->{map}->{keyreclen}+20), 0;
+	read $self->{keyfile}, $rec, $self->{map}->{keyreclen}+20;
+
+	return $rec;
+}
+
+sub getRowHash {
+	my ($self, $rownum) = @_;
+	my $reclen = $self->{map}->{keyreclen}+0;
+
+	my $res = {};
+
+	($res->{fp_rawheader}, $res->{fp_rawrow}) = unpack("a20a".$self->{map}->{keyreclen}, $self->getRowRaw($rownum));
+
+	($res->{fp_notdeleted}, undef, $res->{fp_cdate}, $res->{fp_cid}, $res->{fp_udate}, $res->{fp_uid}, $res->{fp_buid}) =
+		unpack("CCSSSSS", $res->{fp_rawheader});
+
+	my $remainder = $res->{fp_rawrow};
+
+	foreach ($self->{map}->{cols}) {
+		$reclen -= $_->{clen};
+		($res->{$_->{cname}}, $remainder) = unpack("a".$_->{clen}."a".$reclen, $remainder);
+	}
+
+	return $res;
+}
+
+sub newIterator {
+	my ($self) = @_;
+	my $nextitr = "iter".$iternum++;
+
+	$self->{$nextitr} = 0;
+
+	return $nextiter;
+}
+
+sub getNextRowHash {
+	my ($self, $iter) = @_;
+	my $res;
+
+	die "Iterator does not exist" unless defined($self->{$iter});
+
+	while (!($res = getRowHash($self->{$iter})->{fp_notdeleted}))
+	{
+		$self->{$iter}++;
+	}
+
+	return $res;
+}
 
 
 1;

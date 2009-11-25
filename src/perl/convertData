@@ -7,12 +7,18 @@
 #
 
 use XML::Simple;
+use Data::Dumper;
 use DBI;
 use FilePro::Data;
 
 my $fph = FilePro::Data->new($ARGV[0]);
 
-print XML::Simple::XMLout($fph);
+print Data::Dumper->Dump([ $fph ]);
+
+print Data::Dumper->Dump([ $fph->getRowHash(1) ]);
+print Data::Dumper->Dump([ $fph->getRowHash(2) ]);
+print Data::Dumper->Dump([ $fph->getRowHash(3) ]);
+
 
 ## Okay. We've got the data. Now let's do something with it.
 
