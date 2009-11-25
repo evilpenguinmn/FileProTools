@@ -11,13 +11,26 @@ use Data::Dumper;
 use DBI;
 use FilePro::Data;
 
+print "Script begins...\n";
+
 my $fph = FilePro::Data->new($ARGV[0]);
+
+print "FilePro::Data object built...\n";
+
+my $iterator;
+
+$iterator = $fph->newIterator();
+
+print "We have an iterator...\n";
+
+my $row;
+
+while ($row = $fph->getNextRowHash($iterator)) {
+	print Data::Dumper->Dump([ $row ]);
+}
 
 print Data::Dumper->Dump([ $fph ]);
 
-print Data::Dumper->Dump([ $fph->getRowHash(1) ]);
-print Data::Dumper->Dump([ $fph->getRowHash(2) ]);
-print Data::Dumper->Dump([ $fph->getRowHash(3) ]);
 
 
 ## Okay. We've got the data. Now let's do something with it.

@@ -3,6 +3,7 @@ package FilePro::Data;
 use 5.010000;
 use strict;
 use warnings;
+use Data::Dumper;
 
 require Exporter;
 
@@ -44,9 +45,11 @@ sub new {
 
 	$self->{numkeyrecs} = (-s $self->{fpdatapath}."/key") / ($self->{map}->{keyreclen}+20);
 
-	open my $keyfile, "<".$self->{fpdatapath}."/key" or die "Cannot open key file";
-	binmode($keyfile);
-	$self->{keyfile} = $keyfile;
+	## We open a handle to the "key" file, which stores the data records and
+	## we keep it around for later use.
+	open KEYFILE, "<".$self->{fpdatapath}."/key" or die "Cannot open key file";
+	binmode(KEYFILE);
+	$self->{keyfile} = \*KEYFILE;
 
 	bless($self, $pkg);
 	return $self;
@@ -64,7 +67,7 @@ sub fp_populate_map($) {
 
 	(undef, $map->{keyreclen}, $map->{datareclen}, $map->{pwchksum}, $map->{passwd}) = split(/:/, $line);
 
-	my @cols = ();
+	my $cols = [];
 
 	while (<MAPFILE>) {
 		my $coldesc = {};
@@ -72,10 +75,12 @@ sub fp_populate_map($) {
 
 		($coldesc->{cname}, $clen, $coldesc->{ctype}) = split(/:/);
 		$coldesc->{clen} = $clen+0;
-		push(@cols, $coldesc);
+		push(@$cols, $coldesc);
 	}
 
-	$map->{cols} = \@cols;
+	close MAPFILE;
+
+	$map->{cols} = $cols;
 
 	return $map;
 }
@@ -84,15 +89,15 @@ sub getRowRaw {
 	my ($self, $rownum) = @_;
 	my $rec;
 
-	seek $self->{keyfile}, $rownum * ($self->{map}->{keyreclen}+20), 0;
-	read $self->{keyfile}, $rec, $self->{map}->{keyreclen}+20;
+	seek($self->{keyfile}, $rownum * ($self->{map}->{keyreclen}+20), 0);
+	read($self->{keyfile}, $rec, $self->{map}->{keyreclen}+20) or die "Attempt to read past end of key file";
 
 	return $rec;
 }
 
 sub getRowHash {
 	my ($self, $rownum) = @_;
-	my $reclen = $self->{map}->{keyreclen}+0;
+	my $reclen = ($self->{map}->{keyreclen})+0;
 
 	my $res = {};
 
@@ -103,7 +108,7 @@ sub getRowHash {
 
 	my $remainder = $res->{fp_rawrow};
 
-	foreach ($self->{map}->{cols}) {
+	foreach (@{$self->{map}->{cols}}) {
 		$reclen -= $_->{clen};
 		($res->{$_->{cname}}, $remainder) = unpack("a".$_->{clen}."a".$reclen, $remainder);
 	}
@@ -117,7 +122,7 @@ sub newIterator {
 
 	$self->{$nextitr} = 0;
 
-	return $nextiter;
+	return $nextitr;
 }
 
 sub getNextRowHash {
@@ -126,10 +131,9 @@ sub getNextRowHash {
 
 	die "Iterator does not exist" unless defined($self->{$iter});
 
-	while (!($res = getRowHash($self->{$iter})->{fp_notdeleted}))
-	{
-		$self->{$iter}++;
-	}
+	do {
+		$res = getRowHash($self, $self->{$iter}++);
+	} while ($res->{fp_notdeleted} == 0);
 
 	return $res;
 }
