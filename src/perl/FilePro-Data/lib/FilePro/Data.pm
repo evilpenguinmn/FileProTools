@@ -55,6 +55,10 @@ sub new {
 	return $self;
 }
 
+## This is meant to be a "static" method. It doesn't expect a
+## "self" parameter. This parses the FilePro map file and stores
+## the result in a hash; a reference to which is placed in the
+## object instance.
 sub fp_populate_map($) {
 	my ($path) = @_;
 
@@ -85,23 +89,44 @@ sub fp_populate_map($) {
 	return $map;
 }
 
+## This returns a raw copy of the record at position $rownum in the
+## FilePro key file opened in this object. FilePro "rows" may contain
+## data or may be marked "deleted." While this may be called by users
+## of this class, we expect that most of the time the getRowHash method
+## would be used as it decodes the header and parses the data into
+## a hash that is easier for programs to use.
 sub getRowRaw {
 	my ($self, $rownum) = @_;
 	my $rec;
 
 	seek($self->{keyfile}, $rownum * ($self->{map}->{keyreclen}+20), 0);
-	read($self->{keyfile}, $rec, $self->{map}->{keyreclen}+20) or die "Attempt to read past end of key file";
+	if (read($self->{keyfile}, $rec, $self->{map}->{keyreclen}+20) != $self->{map}->{keyreclen}+20) {
+		return undef;
+	}
 
 	return $rec;
 }
 
+## This returns a hash of the parsed header and the data (if any) at position
+## $rownum in the key file. The most important hash key is probably {fp_notdeleted}
+## which will be non-zero (true) if there is data in $rownum.
+##
+## The raw header and raw data (if any) are available as {fp_rawheader} and
+## {fp_rawrow} respectively. The fields are also parsed into a hash based on the
+## map file contents. There is an array reference at {cols}. Each element of
 sub getRowHash {
 	my ($self, $rownum) = @_;
 	my $reclen = ($self->{map}->{keyreclen})+0;
 
 	my $res = {};
 
-	($res->{fp_rawheader}, $res->{fp_rawrow}) = unpack("a20a".$self->{map}->{keyreclen}, $self->getRowRaw($rownum));
+	my $rawrow = $self->getRowRaw($rownum);
+
+	if (!defined($rawrow)) {
+		return undef;
+	}
+
+	($res->{fp_rawheader}, $res->{fp_rawrow}) = unpack("a20a".$self->{map}->{keyreclen}, $rawrow);
 
 	($res->{fp_notdeleted}, undef, $res->{fp_cdate}, $res->{fp_cid}, $res->{fp_udate}, $res->{fp_uid}, $res->{fp_buid}) =
 		unpack("CCSSSSS", $res->{fp_rawheader});
@@ -114,6 +139,24 @@ sub getRowHash {
 	}
 
 	return $res;
+}
+
+sub getDataCount {
+	my ($self) = @_;
+
+	return (-s $self->{fpdatapath}."/key") / ($self->{map}->{keyreclen}+20);
+}
+
+sub getRowCount {
+	my ($self) = @_;
+	my $count = 0;
+
+	for (my $i = 0; $i < $self->getDataCount(); $i++) {
+		my $row = $self->getRowHash($i);
+		$count++ if ($row->{fp_notdeleted});
+	}
+
+	return $count;
 }
 
 sub newIterator {
