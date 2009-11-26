@@ -36,6 +36,9 @@ our $iternum = 0;
 sub new {
 	my ($pkg, $dpath) = @_; 
 	my $self = { fpdatapath => $dpath };
+
+	die "No data path specified. You must name the base dir of a FilePro 'file'."
+		unless (defined($dpath));
 	
 	die "Folder $self->{fpdatapath} does not exist" unless ( -d $self->{fpdatapath} );
 	die "Cannot read $self->{fpdatapath} map file" unless ( -r $self->{fpdatapath}."/map" );
