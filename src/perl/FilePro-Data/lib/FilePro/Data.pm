@@ -174,9 +174,9 @@ sub getNextRowHash {
 
 	die "Iterator does not exist" unless defined($self->{$iter});
 
-	do {
-		$res = getRowHash($self, $self->{$iter}++);
-	} while ($res->{fp_notdeleted} == 0);
+	while ($res = getRowHash($self, $self->{$iter}++)) {
+		last if ($res->{fp_notdeleted});
+	}
 
 	return $res;
 }
