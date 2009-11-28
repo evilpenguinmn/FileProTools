@@ -1,0 +1,44 @@
+FilePro-Screen version 0.01
+===========================
+
+This module supports reading FilePro "screen" files. These are the files
+that implement screens, reports, and "processing" (what most of us would
+think of as "programming," either on demand or on a schedule).
+
+The purpose of the module is to give you perl data structures you can
+use to analyze the contents of such files. This may be to implement their
+functionality yourself in a perl program, to document the dependencies
+between screens, reports, and data, to convert them to web pages, whatever.
+
+This module is just designed to read 'em in and display 'em.
+
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires these other modules and libraries:
+
+  FilePro::Data		(Also by TechnoDane, LLC - Reads FilePro "map" and
+			"key" files)
+
+
+
+COPYRIGHT AND LICENCE
+
+Put the correct copyright and licence information here.
+
+Copyright (C) 2009 by TechnoDane Software & Systems, LLC
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.10.0 or,
+at your option, any later version of Perl 5 you may have available.
+
+
