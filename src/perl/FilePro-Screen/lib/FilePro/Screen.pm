@@ -32,6 +32,29 @@ our $VERSION = '0.01';
 
 ## Screen parsing class implementation
 
+sub new {
+        my ($pkg, $dpath, $screen_fn) = @_;
+        my $self = { fpdatapath => $dpath };
+
+        die "No data path specified. You must name the base dir of a FilePro 'file'."
+                unless (defined($dpath));
+
+        die "Folder $self->{fpdatapath} does not exist" unless ( -d $self->{fpdatapath} );
+	open SCREEN, "<$dpath/$screen_fn" or die "Cannot open screen file $dpath/$screen_fn";
+	binmode(SCREEN);
+	$self->{fpscreenfilename} = $screen_fn;
+	$self->{screenfile} = \*SCREEN;
+
+	my $code;
+
+	read($self->{screenfile}, $code, 2) or die "Cannot read screen magic";
+
+	die "Incorrect screen magic" unless ($code == 0x3e11);
+	bless($self, $pkg);
+	return $self;
+}
+
+
 1;
 __END__
 # Below is stub documentation for your module. You'd better edit it!
