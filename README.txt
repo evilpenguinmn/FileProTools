@@ -13,6 +13,6 @@ The primary effort is going into the perl code for the sake of portability.
 
 The primary author may be contacted by email at (do the usual anti-spam substitutions):
 
-info at technodane dot com
+mschwarz at technodane dot com
 
 
